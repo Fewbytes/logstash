@@ -115,6 +115,7 @@ class LogStash::Inputs::File < LogStash::Inputs::Base
       source = Addressable::URI.new(:scheme => "file", :host => hostname, :path => path).to_s
       @logger.debug("Received line", :path => path, :line => line)
       e = to_event(line, source)
+      e.source_host = hostname
       if e
         queue << e
       end

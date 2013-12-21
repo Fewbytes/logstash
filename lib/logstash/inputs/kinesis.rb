@@ -94,7 +94,12 @@ class LogStash::Inputs::Kinesis < LogStash::Inputs::Base
 					# wait a bit, so we don't go haywire with resources
 					backoff
 				end
-				shard_iterator = res[:next_shard_iterator]
+				if res[:next_shard_iterator]
+					shard_iterator = res[:next_shard_iterator]
+				else # end of shard, probably resharding occured
+					@logger.warn("Shard exhausted, going to sleep", :shard_id => @shard_id)
+					sleep
+				end
 			rescue AWS::Kinesis::Errors::ExpiredIteratorException => e
 				@logger.warn("Shard iterator expired. Fetching new shard iterator", :shard_iterator => shard_iterator)
 				shard_iterator = shard_iterator = @kinesis.client.get_shard_iterator(
